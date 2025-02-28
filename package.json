@@ -8,7 +8,7 @@
     "react-dom": "^18.2.0",
     "react-scripts": "5.0.1"
   },
-  "homepage": "https://tax-tracker.github.io/",
+  "homepage": "https://Finanshels.github.io/tax-tracker-react-app",
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
