@@ -1,8 +1,8 @@
 {
   "files": {
-    "main.js": "/static/js/main.214cb415.js",
-    "index.html": "/index.html",
-    "main.214cb415.js.map": "/static/js/main.214cb415.js.map"
+    "main.js": "/tax-tracker-react-app/static/js/main.214cb415.js",
+    "index.html": "/tax-tracker-react-app/index.html",
+    "main.214cb415.js.map": "/tax-tracker-react-app/static/js/main.214cb415.js.map"
   },
   "entrypoints": [
     "static/js/main.214cb415.js"
