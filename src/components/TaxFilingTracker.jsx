@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Calendar } from 'lucide-react';
 
 const TaxFilingTracker = () => {
@@ -11,6 +10,7 @@ const TaxFilingTracker = () => {
   const [showResults, setShowResults] = useState(false);
   const [customYear, setCustomYear] = useState(new Date().getFullYear());
   const [customMonth, setCustomMonth] = useState(new Date().getMonth());
+  const [windowWidth, setWindowWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 1200);
 
   // Finanshels brand colors
   const brandColors = {
@@ -20,12 +20,23 @@ const TaxFilingTracker = () => {
     accent: '#E65100', // Darker orange for hover
   };
 
+  // Add window resize listener for responsive design
+  useEffect(() => {
+    const handleResize = () => {
+      setWindowWidth(window.innerWidth);
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => {
+      window.removeEventListener('resize', handleResize);
+    };
+  }, []);
+
   const months = [
     'January', 'February', 'March', 'April', 'May', 'June',
     'July', 'August', 'September', 'October', 'November', 'December'
   ];
 
-  // Generate years from 2010 to 2030
   const years = Array.from({ length: 21 }, (_, i) => 2010 + i);
 
   const financialYearOptions = [
@@ -247,8 +258,6 @@ const TaxFilingTracker = () => {
       const monthsDiff = (nextFYEndDate.getFullYear() - incorpDate.getFullYear()) * 12 + 
                          (nextFYEndDate.getMonth() - incorpDate.getMonth());
       
-      console.log(`Months diff: ${monthsDiff} for ${incorpDate.toDateString()} to ${nextFYEndDate.toDateString()}`);
-      
       if (monthsDiff >= 6) {
         // If 6 or more months, first filing period ends at next FY end
         firstFilingEndDate = nextFYEndDate;
@@ -287,106 +296,312 @@ const TaxFilingTracker = () => {
     setShowResults(true);
   };
 
+  // Responsive styles based on window width
+  const getResponsiveStyles = () => {
+    const isMobile = windowWidth < 768;
+    const isTablet = windowWidth >= 768 && windowWidth < 1024;
+    
+    return {
+      container: {
+        maxWidth: isMobile ? '100%' : (isTablet ? '90%' : '800px'),
+        margin: '0 auto',
+        backgroundColor: '#f8f9fc',
+        borderRadius: isMobile ? '8px' : '12px',
+        boxShadow: '0 4px 20px rgba(0, 0, 0, 0.05)',
+        overflow: 'hidden',
+        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif'
+      },
+      header: {
+        padding: isMobile ? '1.5rem 1rem 1rem' : '2rem 2rem 1.5rem'
+      },
+      title: {
+        fontSize: isMobile ? '1.5rem' : '2rem',
+        fontWeight: 'bold',
+        textAlign: 'center',
+        marginBottom: '1rem',
+        color: '#000'
+      },
+      description: {
+        textAlign: 'center',
+        color: '#666',
+        fontSize: isMobile ? '0.875rem' : '1rem',
+        marginBottom: isMobile ? '1.5rem' : '2rem'
+      },
+      sectionMargin: {
+        marginBottom: isMobile ? '1.25rem' : '1.5rem'
+      },
+      label: {
+        display: 'block',
+        marginBottom: isMobile ? '0.5rem' : '0.75rem',
+        fontWeight: '600',
+        color: '#000',
+        fontSize: isMobile ? '0.875rem' : '1rem'
+      },
+      input: {
+        width: '100%',
+        padding: isMobile ? '0.75rem' : '0.875rem',
+        paddingLeft: '3rem',
+        border: '1px solid #e2e8f0',
+        borderRadius: '0.5rem',
+        fontSize: isMobile ? '0.875rem' : '1rem',
+        cursor: 'pointer',
+        boxSizing: 'border-box',
+        backgroundColor: 'white'
+      },
+      select: {
+        width: '100%',
+        padding: isMobile ? '0.75rem' : '0.875rem',
+        paddingRight: '2rem',
+        border: '1px solid #e2e8f0',
+        borderRadius: '0.5rem',
+        fontSize: isMobile ? '0.875rem' : '1rem',
+        backgroundColor: 'white',
+        cursor: 'pointer',
+        appearance: 'none'
+      },
+      button: {
+        width: '100%',
+        padding: isMobile ? '0.75rem' : '0.875rem',
+        backgroundColor: brandColors.primary,
+        color: 'white',
+        border: 'none',
+        borderRadius: '0.5rem',
+        fontSize: isMobile ? '0.875rem' : '1rem',
+        fontWeight: '600',
+        cursor: 'pointer',
+        marginBottom: '1rem',
+        transition: 'background-color 0.2s'
+      },
+      calendarPopup: {
+        position: 'absolute',
+        zIndex: 10,
+        backgroundColor: 'white',
+        border: '1px solid #e2e8f0',
+        borderRadius: '0.5rem',
+        boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+        padding: '1rem',
+        marginTop: '0.5rem',
+        width: isMobile ? 'calc(100% - 2rem)' : 'calc(100% - 4rem)',
+        maxWidth: isMobile ? '100%' : '400px',
+        left: isMobile ? '0' : 'auto'
+      },
+      calendarGrid: {
+        display: 'grid',
+        gridTemplateColumns: 'repeat(7, 1fr)',
+        gap: isMobile ? '0.125rem' : '0.25rem'
+      },
+      calendarDay: {
+        padding: isMobile ? '0.375rem' : '0.5rem',
+        textAlign: 'center',
+        fontWeight: '500',
+        fontSize: isMobile ? '0.75rem' : '0.875rem'
+      },
+      resultsContainer: {
+        backgroundColor: 'white',
+        padding: isMobile ? '1.25rem 1rem' : '1.5rem',
+        margin: isMobile ? '0 1rem 1.5rem' : '0 2rem 2rem',
+        borderRadius: '0.5rem',
+        border: '1px solid #e2e8f0'
+      },
+      resultsTitle: {
+        fontSize: isMobile ? '1.125rem' : '1.25rem',
+        fontWeight: '600',
+        marginBottom: isMobile ? '1.25rem' : '1.5rem',
+        color: brandColors.secondary
+      },
+      resultItem: {
+        display: 'flex',
+        alignItems: isMobile ? 'flex-start' : 'center',
+        marginBottom: '1rem',
+        flexDirection: isMobile ? 'column' : 'row'
+      },
+      resultNumber: {
+        width: isMobile ? '1.75rem' : '2rem',
+        height: isMobile ? '1.75rem' : '2rem',
+        backgroundColor: brandColors.primary,
+        color: 'white',
+        borderRadius: '50%',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginRight: '1rem',
+        marginBottom: isMobile ? '0.5rem' : '0',
+        fontWeight: 'bold',
+        fontSize: isMobile ? '0.875rem' : '1rem'
+      },
+      resultLabel: {
+        fontWeight: '500',
+        color: brandColors.secondary,
+        marginBottom: '0.25rem',
+        fontSize: isMobile ? '0.875rem' : '1rem'
+      },
+      resultValue: {
+        fontSize: isMobile ? '1rem' : '1.125rem'
+      },
+      footer: {
+        padding: isMobile ? '1.25rem 1rem' : '1.5rem 2rem',
+        backgroundColor: '#f8f9fc',
+        borderTop: '1px solid #e2e8f0',
+        textAlign: 'center'
+      },
+      footerText: {
+        color: '#4a5568',
+        fontSize: isMobile ? '0.75rem' : '0.875rem',
+        lineHeight: '1.5'
+      }
+    };
+  };
+
+  const styles = getResponsiveStyles();
+
   return (
-    <Card className="w-full max-w-2xl mx-auto shadow-lg" style={{backgroundColor: brandColors.background, borderRadius: '12px'}}>
-      <CardHeader className="pb-2">
-        <CardTitle className="text-2xl font-bold text-center mb-4" style={{color: brandColors.secondary}}>
+    <div style={styles.container}>
+      {/* Header */}
+      <div style={styles.header}>
+        <h2 style={styles.title}>
           UAE Corporate Tax Tracker
-        </CardTitle>
-        <CardDescription className="text-center text-gray-600 px-4">
+        </h2>
+        <p style={styles.description}>
           Calculate your first filing period and due date based on incorporation date and financial year
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-8 p-6">
-        <div className="space-y-3">
-          <label htmlFor="incorporation-date" className="block text-base font-medium" style={{color: brandColors.secondary}}>
+        </p>
+
+        {/* Incorporation Date Section */}
+        <div style={styles.sectionMargin}>
+          <label style={styles.label}>
             Your Company Incorporation Date
           </label>
-          <div className="relative">
-            <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-              <Calendar size={20} style={{color: brandColors.primary}} />
+          <div style={{ position: 'relative' }}>
+            <div style={{
+              position: 'absolute',
+              left: '16px',
+              top: '50%',
+              transform: 'translateY(-50%)',
+              pointerEvents: 'none',
+              color: brandColors.primary
+            }}>
+              <Calendar size={windowWidth < 768 ? 16 : 20} color={brandColors.primary} />
             </div>
             <input
-              id="incorporation-date"
               type="text"
-              className="w-full pl-10 p-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 text-base"
               style={{
-                borderColor: '#E2E8F0',
-                boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-                cursor: 'pointer',
-                minHeight: '44px',
-                fontSize: '16px'
+                ...styles.input,
+                color: incorporationDate ? '#000' : '#a0aec0'
               }}
               value={incorporationDate ? new Date(incorporationDate).toLocaleDateString('en-GB', {
-                day: '2-digit', month: 'short', year: 'numeric'
-              }) : ''}
+                day: '2-digit',
+                month: 'short',
+                year: 'numeric'
+              }) : 'Click to select date'}
               onClick={() => setShowDatePicker(!showDatePicker)}
-              placeholder="Click to select date"
               readOnly
             />
           </div>
-          
+
           {showDatePicker && (
-            <div className="mt-2 p-4 bg-white border rounded-lg shadow-lg absolute z-10">
-              <div className="flex justify-between items-center mb-4">
-                <select 
+            <div style={styles.calendarPopup}>
+              {/* Month/Year Selectors */}
+              <div style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                marginBottom: '1rem'
+              }}>
+                <select
                   value={customMonth}
                   onChange={(e) => setCustomMonth(parseInt(e.target.value))}
-                  className="p-2 border rounded"
-                  style={{borderColor: brandColors.primary}}
+                  style={{
+                    padding: windowWidth < 768 ? '0.375rem' : '0.5rem',
+                    border: '1px solid #e2e8f0',
+                    borderRadius: '0.25rem',
+                    backgroundColor: 'white',
+                    cursor: 'pointer',
+                    fontSize: windowWidth < 768 ? '0.75rem' : '0.875rem'
+                  }}
                 >
                   {months.map((month, index) => (
                     <option key={month} value={index}>{month}</option>
                   ))}
                 </select>
-                
-                <select 
+
+                <select
                   value={customYear}
                   onChange={(e) => setCustomYear(parseInt(e.target.value))}
-                  className="p-2 border rounded"
-                  style={{borderColor: brandColors.primary}}
+                  style={{
+                    padding: windowWidth < 768 ? '0.375rem' : '0.5rem',
+                    border: '1px solid #e2e8f0',
+                    borderRadius: '0.25rem',
+                    backgroundColor: 'white',
+                    cursor: 'pointer',
+                    fontSize: windowWidth < 768 ? '0.75rem' : '0.875rem'
+                  }}
                 >
                   {years.map(year => (
                     <option key={year} value={year}>{year}</option>
                   ))}
                 </select>
               </div>
-              
-              <div className="grid grid-cols-7 gap-1 text-center">
+
+              {/* Calendar Grid */}
+              <div style={styles.calendarGrid}>
                 {['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'].map(day => (
-                  <div key={day} className="p-2 text-sm font-medium" style={{color: brandColors.secondary}}>
+                  <div key={day} style={{
+                    ...styles.calendarDay,
+                    color: brandColors.secondary
+                  }}>
                     {day}
                   </div>
                 ))}
-                
-                {generateCalendarDays().map((day, index) => (
-                  <div 
-                    key={index} 
-                    className={`p-2 text-center rounded-full ${day ? 'cursor-pointer hover:bg-gray-200' : ''}`}
-                    onClick={() => day && handleDateSelection(day)}
-                    style={day ? {
-                      backgroundColor: incorporationDate && 
-                                     new Date(incorporationDate).getDate() === day && 
-                                     new Date(incorporationDate).getMonth() === customMonth && 
-                                     new Date(incorporationDate).getFullYear() === customYear 
-                                   ? brandColors.primary : '',
-                      color: incorporationDate && 
-                             new Date(incorporationDate).getDate() === day && 
-                             new Date(incorporationDate).getMonth() === customMonth && 
-                             new Date(incorporationDate).getFullYear() === customYear 
-                           ? 'white' : ''
-                    } : {}}
-                  >
-                    {day}
-                  </div>
-                ))}
+
+                {generateCalendarDays().map((day, index) => {
+                  // Check if this day is the selected date
+                  const isSelected = day && incorporationDate && 
+                    new Date(incorporationDate).getDate() === day &&
+                    new Date(incorporationDate).getMonth() === customMonth &&
+                    new Date(incorporationDate).getFullYear() === customYear;
+                  
+                  return (
+                    <div
+                      key={index}
+                      onClick={() => day && handleDateSelection(day)}
+                      style={{
+                        ...styles.calendarDay,
+                        cursor: day ? 'pointer' : 'default',
+                        backgroundColor: isSelected ? brandColors.primary : 'transparent',
+                        color: isSelected ? 'white' : (day ? brandColors.secondary : 'transparent'),
+                        borderRadius: '0.25rem',
+                        transition: 'background-color 0.2s'
+                      }}
+                      onMouseOver={(e) => {
+                        if (day) e.currentTarget.style.backgroundColor = isSelected ? brandColors.primary : '#f3f4f6';
+                      }}
+                      onMouseOut={(e) => {
+                        if (day) e.currentTarget.style.backgroundColor = isSelected ? brandColors.primary : 'transparent';
+                      }}
+                    >
+                      {day || ''}
+                    </div>
+                  );
+                })}
               </div>
-              
-              <div className="mt-4 flex justify-end">
-                <button 
-                  className="px-4 py-2 rounded text-white"
-                  style={{backgroundColor: brandColors.primary}}
+
+              {/* Close Button */}
+              <div style={{
+                marginTop: '1rem',
+                textAlign: 'right'
+              }}>
+                <button
                   onClick={() => setShowDatePicker(false)}
+                  style={{
+                    padding: windowWidth < 768 ? '0.375rem 0.75rem' : '0.5rem 1rem',
+                    backgroundColor: brandColors.primary,
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '0.25rem',
+                    cursor: 'pointer',
+                    transition: 'background-color 0.2s',
+                    fontSize: windowWidth < 768 ? '0.75rem' : '0.875rem'
+                  }}
+                  onMouseOver={(e) => e.currentTarget.style.backgroundColor = brandColors.accent}
+                  onMouseOut={(e) => e.currentTarget.style.backgroundColor = brandColors.primary}
                 >
                   Close
                 </button>
@@ -394,88 +609,121 @@ const TaxFilingTracker = () => {
             </div>
           )}
           
-          <p className="text-sm text-gray-500 mt-1">
+          <p style={{ 
+            color: '#718096', 
+            fontSize: windowWidth < 768 ? '0.75rem' : '0.875rem', 
+            marginTop: '0.5rem' 
+          }}>
             Click to open our custom calendar for easier selection of any date
           </p>
         </div>
-        
-        <div className="space-y-3">
-          <label htmlFor="financial-year" className="block text-base font-medium" style={{color: brandColors.secondary}}>
+
+        {/* Financial Year Section */}
+        <div style={styles.sectionMargin}>
+          <label style={styles.label}>
             Your Financial Year (As per MOA/AOA)
           </label>
-          <select
-            id="financial-year"
-            className="w-full p-3 border border-gray-300 rounded-lg shadow-sm appearance-none focus:outline-none focus:ring-2 text-base"
-            style={{
-              borderColor: '#E2E8F0',
-              boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-              background: 'white url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' fill=\'none\' viewBox=\'0 0 24 24\' stroke=\'%23F47B20\'%3E%3Cpath stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'2\' d=\'M19 9l-7 7-7-7\'%3E%3C/path%3E%3C/svg%3E") no-repeat',
-              backgroundPosition: 'right 10px center',
-              backgroundSize: '20px',
-              paddingRight: '40px',
-              cursor: 'pointer'
-            }}
-            value={financialYear}
-            onChange={(e) => setFinancialYear(e.target.value)}
-          >
-            {financialYearOptions.map((option) => (
-              <option key={option} value={option}>
-                {option}
-              </option>
-            ))}
-          </select>
+          <div style={{ position: 'relative' }}>
+            <select
+              value={financialYear}
+              onChange={(e) => setFinancialYear(e.target.value)}
+              style={styles.select}
+            >
+              {financialYearOptions.map(option => (
+                <option key={option} value={option}>
+                  {option}
+                </option>
+              ))}
+            </select>
+            <div style={{
+              position: 'absolute',
+              right: '16px',
+              top: '50%',
+              transform: 'translateY(-50%)',
+              pointerEvents: 'none',
+              color: brandColors.primary
+            }}>
+              <svg width={windowWidth < 768 ? "12" : "16"} height={windowWidth < 768 ? "12" : "16"} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M6 9L12 15L18 9" stroke={brandColors.primary} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </div>
+          </div>
         </div>
-        
+
+        {/* Calculate Button */}
         <button
-          className="w-full py-3 px-4 rounded-lg font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 transition-colors text-base"
-          style={{
-            backgroundColor: brandColors.primary,
-            color: 'white',
-            cursor: 'pointer'
-          }}
+          onClick={calculateFilingDetails}
+          style={styles.button}
           onMouseOver={(e) => e.currentTarget.style.backgroundColor = brandColors.accent}
           onMouseOut={(e) => e.currentTarget.style.backgroundColor = brandColors.primary}
-          onClick={calculateFilingDetails}
         >
           Calculate Due Dates
         </button>
-        
-        {showResults && (
-          <div className="mt-8 p-6 border rounded-lg bg-white shadow-sm">
-            <h3 className="text-lg font-medium mb-6" style={{color: brandColors.secondary}}>Tax Filing Timeline</h3>
-            <div className="space-y-6">
-              <div className="flex items-start">
-                <div className="h-10 w-10 rounded-full flex items-center justify-center mr-4" 
-                     style={{backgroundColor: brandColors.primary, color: 'white'}}>
-                  1
+      </div>
+
+      {/* Results Section */}
+      {showResults && (
+        <div style={styles.resultsContainer}>
+          <h3 style={styles.resultsTitle}>
+            Tax Filing Timeline
+          </h3>
+
+          <div style={{ marginBottom: windowWidth < 768 ? '1rem' : '1.5rem' }}>
+            <div style={{
+              ...styles.resultItem,
+              alignItems: windowWidth < 768 ? 'flex-start' : 'center',
+              flexDirection: windowWidth < 768 ? 'column' : 'row'
+            }}>
+              <div style={{
+                ...styles.resultNumber,
+                marginBottom: windowWidth < 768 ? '0.5rem' : '0'
+              }}>
+                1
+              </div>
+              <div style={{ width: windowWidth < 768 ? '100%' : 'auto' }}>
+                <div style={styles.resultLabel}>
+                  Your First Filing Period:
                 </div>
-                <div>
-                  <span className="font-semibold block mb-1" style={{color: brandColors.secondary}}>Your First Filing Period:</span> 
-                  <span className="text-gray-700 text-lg">{firstFilingPeriod}</span>
+                <div style={styles.resultValue}>
+                  {firstFilingPeriod}
                 </div>
               </div>
-              <div className="flex items-start">
-                <div className="h-10 w-10 rounded-full flex items-center justify-center mr-4" 
-                     style={{backgroundColor: brandColors.primary, color: 'white'}}>
-                  2
+            </div>
+
+            <div style={{
+              ...styles.resultItem,
+              alignItems: windowWidth < 768 ? 'flex-start' : 'center',
+              flexDirection: windowWidth < 768 ? 'column' : 'row',
+              marginBottom: 0
+            }}>
+              <div style={{
+                ...styles.resultNumber,
+                marginBottom: windowWidth < 768 ? '0.5rem' : '0'
+              }}>
+                2
+              </div>
+              <div style={{ width: windowWidth < 768 ? '100%' : 'auto' }}>
+                <div style={styles.resultLabel}>
+                  Your First Filing Due Date:
                 </div>
-                <div>
-                  <span className="font-semibold block mb-1" style={{color: brandColors.secondary}}>Your First Filing Due Date:</span> 
-                  <span className="text-gray-700 text-lg">{filingDueDate}</span>
+                <div style={styles.resultValue}>
+                  {filingDueDate}
                 </div>
               </div>
             </div>
           </div>
-        )}
-      </CardContent>
-      <CardFooter className="text-xs text-gray-500 text-center px-4 pb-6">
-        <div className="w-full p-4 bg-gray-100 rounded-lg">
-          <p className="font-medium" style={{color: brandColors.secondary}}>
-            <strong>Simplify your tax filing process!</strong> Get expert assistance by reaching out to <strong style={{color: brandColors.primary}}>sales@finanshels.com</strong>. Keeping your financial statements updated before the <strong>Due Date</strong> is key to a hassle-free filing.
-          </p>
         </div>
-      </CardFooter>
-    </Card>
+      )}
+
+      {/* Footer */}
+      <div style={styles.footer}>
+        <p style={styles.footerText}>
+          <strong style={{ fontWeight: '600' }}>Simplify your tax filing process!</strong> Get expert assistance by reaching out to{' '}
+          <a href="mailto:sales@finanshels.com" style={{ color: brandColors.primary, textDecoration: 'none', fontWeight: '600' }}>sales@finanshels.com</a>.
+          {windowWidth < 768 ? <br /> : ' '}Keeping your financial statements updated before the <strong style={{ fontWeight: '600' }}>Due Date</strong> is key to a hassle-free filing.
+        </p>
+      </div>
+    </div>
   );
 };
 
