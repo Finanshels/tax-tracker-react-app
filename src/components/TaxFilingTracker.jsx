@@ -429,7 +429,7 @@ const TaxFilingTracker = () => {
                 day: '2-digit',
                 month: 'short',
                 year: 'numeric'
-              }) : 'Please enter valid email first'}
+              }) : (isEmailValid ? 'Click to select incorporation date' : 'Please enter valid email first')}
               onClick={() => isEmailValid && setShowDatePicker(!showDatePicker)}
               readOnly
             />
