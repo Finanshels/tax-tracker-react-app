@@ -1,127 +1,57 @@
 import React, { useState, useEffect } from 'react';
 import { Calendar } from 'lucide-react';
+import { jsonStorage } from '../utils/jsonStorage';
+
+// Constants
+const MONTHS = [
+  'January', 'February', 'March', 'April', 'May', 'June',
+  'July', 'August', 'September', 'October', 'November', 'December'
+];
+
+const FINANCIAL_YEAR_OPTIONS = [
+  'January to December', 'February to January', 'March to February',
+  'April to March', 'May to April', 'June to May', 'July to June',
+  'August to July', 'September to August', 'October to September',
+  'November to October', 'December to November'
+];
+
+const BRAND_COLORS = {
+  primary: '#F47B20',
+  secondary: '#000000',
+  background: '#F5F7FA',
+  accent: '#E65100',
+};
 
 const TaxFilingTracker = () => {
   const [incorporationDate, setIncorporationDate] = useState('');
   const [showDatePicker, setShowDatePicker] = useState(false);
-  const [financialYear, setFinancialYear] = useState('January to December');
+  const [financialYear, setFinancialYear] = useState(FINANCIAL_YEAR_OPTIONS[0]);
   const [firstFilingPeriod, setFirstFilingPeriod] = useState('');
   const [filingDueDate, setFilingDueDate] = useState('');
   const [showResults, setShowResults] = useState(false);
   const [customYear, setCustomYear] = useState(new Date().getFullYear());
   const [customMonth, setCustomMonth] = useState(new Date().getMonth());
   const [windowWidth, setWindowWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 1200);
-
-  // Finanshels brand colors
-  const brandColors = {
-    primary: '#F47B20', // Orange from logo
-    secondary: '#000000', // Black from logo
-    background: '#F5F7FA', // Light gray background
-    accent: '#E65100', // Darker orange for hover
-  };
-
-  // Add window resize listener for responsive design
-  useEffect(() => {
-    const handleResize = () => {
-      setWindowWidth(window.innerWidth);
-    };
-
-    window.addEventListener('resize', handleResize);
-    return () => {
-      window.removeEventListener('resize', handleResize);
-    };
-  }, []);
-
-  const months = [
-    'January', 'February', 'March', 'April', 'May', 'June',
-    'July', 'August', 'September', 'October', 'November', 'December'
-  ];
+  const [email, setEmail] = useState('');
+  const [emailError, setEmailError] = useState('');
+  const [isEmailValid, setIsEmailValid] = useState(false);
 
   const years = Array.from({ length: 21 }, (_, i) => 2010 + i);
+  const getMonthName = (monthNumber) => MONTHS[monthNumber];
+  const getMonthNumber = (monthName) => MONTHS.indexOf(monthName);
 
-  const financialYearOptions = [
-    'January to December',
-    'February to January',
-    'March to February',
-    'April to March',
-    'May to April',
-    'June to May',
-    'July to June',
-    'August to July',
-    'September to August',
-    'October to September',
-    'November to October',
-    'December to November'
-  ];
-
-  // Use useEffect to recalculate when inputs change
   useEffect(() => {
-    // Only recalculate if we've already shown results once
-    // and we have a valid incorporation date
-    if (showResults && incorporationDate) {
-      calculateFilingDetails();
-    }
-  }, [incorporationDate, financialYear]);
+    jsonStorage.init();
+  }, []);
 
-  // Function to handle custom date selection
-  const handleDateSelection = (day) => {
-    // Use direct string formatting to avoid timezone issues
-    // This ensures the date is exactly what the user selected
-    const formattedDate = `${customYear}-${String(customMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-    setIncorporationDate(formattedDate);
-    setShowDatePicker(false);
-  };
-
-  // Function to get days in month
-  const getDaysInMonth = (year, month) => {
-    return new Date(year, month + 1, 0).getDate();
-  };
-
-  // Function to generate calendar days
-  const generateCalendarDays = () => {
-    const daysInMonth = getDaysInMonth(customYear, customMonth);
-    const firstDayOfMonth = new Date(customYear, customMonth, 1).getDay();
-    
-    // Create array for days of the month
-    const days = [];
-    
-    // Add empty cells for days before the first day of the month
-    for (let i = 0; i < firstDayOfMonth; i++) {
-      days.push(null);
-    }
-    
-    // Add days of the month
-    for (let i = 1; i <= daysInMonth; i++) {
-      days.push(i);
-    }
-    
-    return days;
-  };
-
-  // Function to get month name from month number (0-based)
-  const getMonthName = (monthNumber) => {
-    const months = [
-      'January', 'February', 'March', 'April', 'May', 'June',
-      'July', 'August', 'September', 'October', 'November', 'December'
-    ];
-    return months[monthNumber];
-  };
-
-  // Function to get month number from month name (0-based)
-  const getMonthNumber = (monthName) => {
-    const months = [
-      'January', 'February', 'March', 'April', 'May', 'June',
-      'July', 'August', 'September', 'October', 'November', 'December'
-    ];
-    return months.indexOf(monthName);
-  };
-
-  // Calculate the first filing period and due date
   const calculateFilingDetails = () => {
+    if (!email || !isEmailValid) {
+      setEmailError('Please enter a valid email address');
+      return;
+    }
+
     if (!incorporationDate) {
-      if (showResults) {
-        setShowResults(false);
-      }
+      if (showResults) setShowResults(false);
       return;
     }
 
@@ -129,178 +59,153 @@ const TaxFilingTracker = () => {
     const incorpMonth = incorpDate.getMonth();
     const incorpYear = incorpDate.getFullYear();
     
-    // Extract financial year start and end months
     const fyParts = financialYear.split(' to ');
     const fyStartMonth = getMonthNumber(fyParts[0]);
     const fyEndMonth = getMonthNumber(fyParts[1]);
-    
-    // Corporate tax implementation date in UAE
-    const taxImplementationDate = new Date(2023, 5, 1); // June 2023
+    const taxImplementationDate = new Date(2023, 5, 1);
     
     let firstFilingStartDate;
     let firstFilingEndDate;
     
-    // Logic 1: Incorporation Date is in June 2023
     if (incorpYear === 2023 && incorpMonth === 5) {
-      // Find next financial year end after incorporation
       let nextFYEndYear = incorpYear;
       let nextFYEndMonth = fyEndMonth;
       
-      // Adjust the year for the next financial year end
       if (fyEndMonth < fyStartMonth) {
-        // Financial year spans across years (e.g., April to March)
         if (fyStartMonth > incorpMonth) {
           nextFYEndYear = incorpYear + 1;
         } else {
           nextFYEndYear = incorpYear + 1;
         }
-      } else {
-        // Financial year within the same year (e.g., January to December)
-        if (fyEndMonth < incorpMonth) {
-          nextFYEndYear = incorpYear + 1;
-        }
+      } else if (fyEndMonth < incorpMonth) {
+        nextFYEndYear = incorpYear + 1;
       }
       
-      // Create the next financial year end date
       const nextFYEndDate = new Date(nextFYEndYear, nextFYEndMonth, 
-        // Use last day of month
         new Date(nextFYEndYear, nextFYEndMonth + 1, 0).getDate()
       );
       
-      // Calculate months difference
       const monthsDiff = (nextFYEndDate.getFullYear() - incorpDate.getFullYear()) * 12 + 
                          (nextFYEndDate.getMonth() - incorpDate.getMonth());
       
       if (monthsDiff >= 6) {
-        // If 6 or more months, first filing period ends at next FY end
         firstFilingStartDate = new Date(incorpDate);
         firstFilingEndDate = nextFYEndDate;
       } else {
-        // If less than 6 months, first filing period ends at next to next FY end
         firstFilingStartDate = new Date(incorpDate);
-        
-        // Calculate next to next financial year end date
-        let nextToNextFYEndYear = nextFYEndYear;
-        if (fyEndMonth < fyStartMonth) {
-          nextToNextFYEndYear += 1;
-        } else {
-          nextToNextFYEndYear += 1;
-        }
-        
+        let nextToNextFYEndYear = nextFYEndYear + 1;
         firstFilingEndDate = new Date(nextToNextFYEndYear, nextFYEndMonth, 
-          // Use last day of month
           new Date(nextToNextFYEndYear, nextFYEndMonth + 1, 0).getDate()
         );
       }
-    }
-    // Logic 2: Incorporation Date is before June 2023
-    else if (incorpDate < taxImplementationDate) {
-      // Find next financial year start date after June 2023
-      let nextFYStartYear = 2023;
-      
-      if (fyStartMonth < 5) { // If FY starts before June
-        nextFYStartYear = 2024;
-      }
-      
+    } else if (incorpDate < taxImplementationDate) {
+      let nextFYStartYear = fyStartMonth < 5 ? 2025 : 2024;
       firstFilingStartDate = new Date(nextFYStartYear, fyStartMonth, 1);
-      
-      // Calculate the FY end date
-      let fyEndYear = nextFYStartYear;
-      if (fyEndMonth < fyStartMonth) {
-        fyEndYear += 1;
-      }
-      
+      let fyEndYear = nextFYStartYear + (fyEndMonth < fyStartMonth ? 1 : 0);
       firstFilingEndDate = new Date(fyEndYear, fyEndMonth, 
-        // Use last day of month
         new Date(fyEndYear, fyEndMonth + 1, 0).getDate()
       );
-    }
-    // Logic 3: Incorporation Date is after June 2023
-    else if (incorpDate > taxImplementationDate) {
-      // First, set the filing start date to the incorporation date
+    } else {
       firstFilingStartDate = new Date(incorpDate);
-      
-      // Find next financial year end after incorporation
       let nextFYEndYear = incorpYear;
       let nextFYEndMonth = fyEndMonth;
       
-      // Determine the next financial year end after incorporation date
-      // For Jan-Dec FY: If incorporated in Aug 2025, next FY end is Dec 2025
-      // For Apr-Mar FY: If incorporated in Aug 2025, next FY end is Mar 2026
-      
-      // Financial year spans across years (e.g., April to March)
       if (fyEndMonth < fyStartMonth) {
-        // If incorporated after FY start month, next end will be in the next year
-        if (incorpMonth >= fyStartMonth) {
-          nextFYEndYear = incorpYear + 1;
-        } 
-        // If incorporated before FY start month but after/at FY end month
-        else if (incorpMonth >= fyEndMonth) {
-          nextFYEndYear = incorpYear + 1;
-        }
-        // Otherwise, it's in the current year
-      } 
-      // Financial year within the same year (e.g., January to December)
-      else {
-        // If incorporated after FY end month, next FY end is next year
-        if (incorpMonth > fyEndMonth) {
-          nextFYEndYear = incorpYear + 1;
-        }
+        nextFYEndYear = incorpMonth >= fyStartMonth ? incorpYear + 1 : incorpYear;
+      } else {
+        nextFYEndYear = incorpMonth > fyEndMonth ? incorpYear + 1 : incorpYear;
       }
       
-      // Create the next financial year end date
       const nextFYEndDate = new Date(nextFYEndYear, nextFYEndMonth, 
-        // Use last day of month
         new Date(nextFYEndYear, nextFYEndMonth + 1, 0).getDate()
       );
       
-      // Calculate months difference
       const monthsDiff = (nextFYEndDate.getFullYear() - incorpDate.getFullYear()) * 12 + 
                          (nextFYEndDate.getMonth() - incorpDate.getMonth());
       
       if (monthsDiff >= 6) {
-        // If 6 or more months, first filing period ends at next FY end
         firstFilingEndDate = nextFYEndDate;
       } else {
-        // If less than 6 months, first filing period ends at next to next FY end
-        
-        // Calculate next to next financial year end date
         let nextToNextFYEndYear = nextFYEndYear + 1;
-        
         firstFilingEndDate = new Date(nextToNextFYEndYear, nextFYEndMonth, 
-          // Use last day of month
           new Date(nextToNextFYEndYear, nextFYEndMonth + 1, 0).getDate()
         );
       }
     }
-    
-    // Calculate Filing Due Date (9th month from the end month of first filing period)
-    // For example: if first filing period ends Dec 2023, due date is Sep 2024
+
     const endMonth = firstFilingEndDate.getMonth();
     const endYear = firstFilingEndDate.getFullYear();
-    
-    // Calculate the due month (adding 9 to the current month)
     const dueMonth = (endMonth + 9) % 12;
-    // Calculate the due year (if month + 9 > 12, we move to next year)
     const dueYear = endYear + Math.floor((endMonth + 9) / 12);
-    
     const filingDueDateValue = new Date(dueYear, dueMonth, 1);
     
-    // Remove debug console.log statements in production version
-    const formatDate = (date) => {
-      return `${getMonthName(date.getMonth())} ${date.getFullYear()}`;
-    };
-    
-    setFirstFilingPeriod(`${formatDate(firstFilingStartDate)} to ${formatDate(firstFilingEndDate)}`);
-    setFilingDueDate(formatDate(filingDueDateValue));
+    const formatDate = (date) => `${getMonthName(date.getMonth())} ${date.getFullYear()}`;
+    const formattedFirstFilingPeriod = `${formatDate(firstFilingStartDate)} to ${formatDate(firstFilingEndDate)}`;
+    const formattedFilingDueDate = formatDate(filingDueDateValue);
+
+    // Update UI immediately
+    setFirstFilingPeriod(formattedFirstFilingPeriod);
+    setFilingDueDate(formattedFilingDueDate);
     setShowResults(true);
+
+    // Save calculation results to Google Sheets in the background
+    const calculationData = {
+      email,
+      incorporationDate,
+      financialYear,
+      firstFilingPeriod: formattedFirstFilingPeriod,
+      filingDueDate: formattedFilingDueDate,
+      calculationDetails: {
+        incorporationMonth: incorpMonth,
+        incorporationYear: incorpYear,
+        fyStartMonth,
+        fyEndMonth,
+        firstFilingStartDate: firstFilingStartDate.toISOString(),
+        firstFilingEndDate: firstFilingEndDate.toISOString(),
+        filingDueDate: filingDueDateValue.toISOString()
+      }
+    };
+
+    // Fire and forget API call
+    jsonStorage.saveCalculation(calculationData)
+      .catch(error => console.error('Failed to save calculation:', error));
   };
+
+  useEffect(() => {
+    const handleResize = () => setWindowWidth(window.innerWidth);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  const validateEmail = (email) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const isValid = emailRegex.test(email);
+    setIsEmailValid(isValid);
+    setEmailError(isValid ? '' : 'Please enter a valid email address');
+    return isValid;
+  };
+
+  const handleDateSelection = (day) => {
+    setIncorporationDate(`${customYear}-${String(customMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`);
+    setShowDatePicker(false);
+  };
+
+  const getDaysInMonth = (year, month) => new Date(year, month + 1, 0).getDate();
+
+  const generateCalendarDays = () => {
+    const daysInMonth = getDaysInMonth(customYear, customMonth);
+    const firstDayOfMonth = new Date(customYear, customMonth, 1).getDay();
+    const days = [];
+    for (let i = 0; i < firstDayOfMonth; i++) days.push(null);
+    for (let i = 1; i <= daysInMonth; i++) days.push(i);
+    return days;
+  };
+
+  const isMobile = windowWidth < 768;
+  const isTablet = windowWidth >= 768 && windowWidth < 1024;
 
   // Responsive styles based on window width
   const getResponsiveStyles = () => {
-    const isMobile = windowWidth < 768;
-    const isTablet = windowWidth >= 768 && windowWidth < 1024;
-    
     return {
       container: {
         maxWidth: isMobile ? '100%' : (isTablet ? '90%' : '800px'),
@@ -362,7 +267,7 @@ const TaxFilingTracker = () => {
       button: {
         width: '100%',
         padding: isMobile ? '0.75rem' : '0.875rem',
-        backgroundColor: brandColors.primary,
+        backgroundColor: BRAND_COLORS.primary,
         color: 'white',
         border: 'none',
         borderRadius: '0.5rem',
@@ -407,7 +312,7 @@ const TaxFilingTracker = () => {
         fontSize: isMobile ? '1.125rem' : '1.25rem',
         fontWeight: '600',
         marginBottom: isMobile ? '1.25rem' : '1.5rem',
-        color: brandColors.secondary
+        color: BRAND_COLORS.secondary
       },
       resultItem: {
         display: 'flex',
@@ -418,7 +323,7 @@ const TaxFilingTracker = () => {
       resultNumber: {
         width: isMobile ? '1.75rem' : '2rem',
         height: isMobile ? '1.75rem' : '2rem',
-        backgroundColor: brandColors.primary,
+        backgroundColor: BRAND_COLORS.primary,
         color: 'white',
         borderRadius: '50%',
         display: 'flex',
@@ -431,7 +336,7 @@ const TaxFilingTracker = () => {
       },
       resultLabel: {
         fontWeight: '500',
-        color: brandColors.secondary,
+        color: BRAND_COLORS.secondary,
         marginBottom: '0.25rem',
         fontSize: isMobile ? '0.875rem' : '1rem'
       },
@@ -465,6 +370,36 @@ const TaxFilingTracker = () => {
           Calculate your first filing period and due date based on incorporation date and financial year
         </p>
 
+        {/* Email Section */}
+        <div style={styles.sectionMargin}>
+          <label style={styles.label}>
+            Your Email Address
+          </label>
+          <input
+            type="email"
+            value={email}
+            onChange={(e) => {
+              setEmail(e.target.value);
+              validateEmail(e.target.value);
+            }}
+            style={{
+              ...styles.input,
+              paddingLeft: '1rem',
+              borderColor: emailError ? '#e53e3e' : '#e2e8f0'
+            }}
+            placeholder="Enter your email address"
+          />
+          {emailError && (
+            <p style={{
+              color: '#e53e3e',
+              fontSize: windowWidth < 768 ? '0.75rem' : '0.875rem',
+              marginTop: '0.5rem'
+            }}>
+              {emailError}
+            </p>
+          )}
+        </div>
+
         {/* Incorporation Date Section */}
         <div style={styles.sectionMargin}>
           <label style={styles.label}>
@@ -477,22 +412,25 @@ const TaxFilingTracker = () => {
               top: '50%',
               transform: 'translateY(-50%)',
               pointerEvents: 'none',
-              color: brandColors.primary
+              color: isEmailValid ? BRAND_COLORS.primary : '#cbd5e0'
             }}>
-              <Calendar size={windowWidth < 768 ? 16 : 20} color={brandColors.primary} />
+              <Calendar size={windowWidth < 768 ? 16 : 20} color={isEmailValid ? BRAND_COLORS.primary : '#cbd5e0'} />
             </div>
             <input
               type="text"
               style={{
                 ...styles.input,
-                color: incorporationDate ? '#000' : '#a0aec0'
+                color: incorporationDate ? '#000' : '#a0aec0',
+                backgroundColor: isEmailValid ? 'white' : '#f3f4f6',
+                cursor: isEmailValid ? 'pointer' : 'not-allowed',
+                borderColor: isEmailValid ? '#e2e8f0' : '#edf2f7'
               }}
               value={incorporationDate ? new Date(incorporationDate).toLocaleDateString('en-GB', {
                 day: '2-digit',
                 month: 'short',
                 year: 'numeric'
-              }) : 'Click to select date'}
-              onClick={() => setShowDatePicker(!showDatePicker)}
+              }) : 'Please enter valid email first'}
+              onClick={() => isEmailValid && setShowDatePicker(!showDatePicker)}
               readOnly
             />
           </div>
@@ -517,7 +455,7 @@ const TaxFilingTracker = () => {
                     fontSize: windowWidth < 768 ? '0.75rem' : '0.875rem'
                   }}
                 >
-                  {months.map((month, index) => (
+                  {MONTHS.map((month, index) => (
                     <option key={month} value={index}>{month}</option>
                   ))}
                 </select>
@@ -545,7 +483,7 @@ const TaxFilingTracker = () => {
                 {['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'].map(day => (
                   <div key={day} style={{
                     ...styles.calendarDay,
-                    color: brandColors.secondary
+                    color: BRAND_COLORS.secondary
                   }}>
                     {day}
                   </div>
@@ -565,16 +503,16 @@ const TaxFilingTracker = () => {
                       style={{
                         ...styles.calendarDay,
                         cursor: day ? 'pointer' : 'default',
-                        backgroundColor: isSelected ? brandColors.primary : 'transparent',
-                        color: isSelected ? 'white' : (day ? brandColors.secondary : 'transparent'),
+                        backgroundColor: isSelected ? BRAND_COLORS.primary : 'transparent',
+                        color: isSelected ? 'white' : (day ? BRAND_COLORS.secondary : 'transparent'),
                         borderRadius: '0.25rem',
                         transition: 'background-color 0.2s'
                       }}
                       onMouseOver={(e) => {
-                        if (day) e.currentTarget.style.backgroundColor = isSelected ? brandColors.primary : '#f3f4f6';
+                        if (day) e.currentTarget.style.backgroundColor = isSelected ? BRAND_COLORS.primary : '#f3f4f6';
                       }}
                       onMouseOut={(e) => {
-                        if (day) e.currentTarget.style.backgroundColor = isSelected ? brandColors.primary : 'transparent';
+                        if (day) e.currentTarget.style.backgroundColor = isSelected ? BRAND_COLORS.primary : 'transparent';
                       }}
                     >
                       {day || ''}
@@ -592,7 +530,7 @@ const TaxFilingTracker = () => {
                   onClick={() => setShowDatePicker(false)}
                   style={{
                     padding: windowWidth < 768 ? '0.375rem 0.75rem' : '0.5rem 1rem',
-                    backgroundColor: brandColors.primary,
+                    backgroundColor: BRAND_COLORS.primary,
                     color: 'white',
                     border: 'none',
                     borderRadius: '0.25rem',
@@ -600,8 +538,8 @@ const TaxFilingTracker = () => {
                     transition: 'background-color 0.2s',
                     fontSize: windowWidth < 768 ? '0.75rem' : '0.875rem'
                   }}
-                  onMouseOver={(e) => e.currentTarget.style.backgroundColor = brandColors.accent}
-                  onMouseOut={(e) => e.currentTarget.style.backgroundColor = brandColors.primary}
+                  onMouseOver={(e) => e.currentTarget.style.backgroundColor = BRAND_COLORS.accent}
+                  onMouseOut={(e) => e.currentTarget.style.backgroundColor = BRAND_COLORS.primary}
                 >
                   Close
                 </button>
@@ -627,9 +565,15 @@ const TaxFilingTracker = () => {
             <select
               value={financialYear}
               onChange={(e) => setFinancialYear(e.target.value)}
-              style={styles.select}
+              style={{
+                ...styles.select,
+                backgroundColor: isEmailValid ? 'white' : '#f3f4f6',
+                cursor: isEmailValid ? 'pointer' : 'not-allowed',
+                borderColor: isEmailValid ? '#e2e8f0' : '#edf2f7'
+              }}
+              disabled={!isEmailValid}
             >
-              {financialYearOptions.map(option => (
+              {FINANCIAL_YEAR_OPTIONS.map(option => (
                 <option key={option} value={option}>
                   {option}
                 </option>
@@ -641,10 +585,10 @@ const TaxFilingTracker = () => {
               top: '50%',
               transform: 'translateY(-50%)',
               pointerEvents: 'none',
-              color: brandColors.primary
+              color: isEmailValid ? BRAND_COLORS.primary : '#cbd5e0'
             }}>
               <svg width={windowWidth < 768 ? "12" : "16"} height={windowWidth < 768 ? "12" : "16"} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M6 9L12 15L18 9" stroke={brandColors.primary} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M6 9L12 15L18 9" stroke={isEmailValid ? BRAND_COLORS.primary : '#cbd5e0'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
             </div>
           </div>
@@ -654,8 +598,8 @@ const TaxFilingTracker = () => {
         <button
           onClick={calculateFilingDetails}
           style={styles.button}
-          onMouseOver={(e) => e.currentTarget.style.backgroundColor = brandColors.accent}
-          onMouseOut={(e) => e.currentTarget.style.backgroundColor = brandColors.primary}
+          onMouseOver={(e) => e.currentTarget.style.backgroundColor = BRAND_COLORS.accent}
+          onMouseOut={(e) => e.currentTarget.style.backgroundColor = BRAND_COLORS.primary}
         >
           Calculate Due Dates
         </button>
@@ -719,7 +663,7 @@ const TaxFilingTracker = () => {
       <div style={styles.footer}>
         <p style={styles.footerText}>
           <strong style={{ fontWeight: '600' }}>Simplify your tax filing process!</strong> Get expert assistance by reaching out to{' '}
-          <a href="mailto:sales@finanshels.com" style={{ color: brandColors.primary, textDecoration: 'none', fontWeight: '600' }}>sales@finanshels.com</a>.
+          <a href="mailto:sales@finanshels.com" style={{ color: BRAND_COLORS.primary, textDecoration: 'none', fontWeight: '600' }}>sales@finanshels.com</a>.
           {windowWidth < 768 ? <br /> : ' '}Keeping your financial statements updated before the <strong style={{ fontWeight: '600' }}>Due Date</strong> is key to a hassle-free filing.
         </p>
       </div>
