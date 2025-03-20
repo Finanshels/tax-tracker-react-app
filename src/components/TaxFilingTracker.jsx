@@ -99,10 +99,23 @@ const TaxFilingTracker = () => {
         );
       }
     } else if (incorpDate < taxImplementationDate) {
-      let nextFYStartYear = fyStartMonth < 5 ? 2025 : 2024;
+      // Find next financial year start date after June 2023
+      let nextFYStartYear = 2023;
+      
+      if (fyStartMonth < 5) { // If FY starts before June
+        nextFYStartYear = 2024;
+      }
+      
       firstFilingStartDate = new Date(nextFYStartYear, fyStartMonth, 1);
-      let fyEndYear = nextFYStartYear + (fyEndMonth < fyStartMonth ? 1 : 0);
+      
+      // Calculate the FY end date
+      let fyEndYear = nextFYStartYear;
+      if (fyEndMonth < fyStartMonth) {
+        fyEndYear += 1;
+      }
+      
       firstFilingEndDate = new Date(fyEndYear, fyEndMonth, 
+        // Use last day of month
         new Date(fyEndYear, fyEndMonth + 1, 0).getDate()
       );
     } else {
