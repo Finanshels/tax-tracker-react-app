@@ -675,9 +675,9 @@ const TaxFilingTracker = () => {
       {/* Footer */}
       <div style={styles.footer}>
         <p style={styles.footerText}>
-          <strong style={{ fontWeight: '600' }}>Simplify your tax filing process!</strong> Get expert assistance by reaching out to{' '}
-          <a href="mailto:sales@finanshels.com" style={{ color: BRAND_COLORS.primary, textDecoration: 'none', fontWeight: '600' }}>sales@finanshels.com</a>.
-          {windowWidth < 768 ? <br /> : ' '}Keeping your financial statements updated before the <strong style={{ fontWeight: '600' }}>Due Date</strong> is key to a hassle-free filing.
+          <strong style={{ fontWeight: '600', fontSize: '20px' }}>New FTA Announcement </strong> <br />
+          {windowWidth < 768 ? <br /> : ' '}Businesses that missed their tax registration can now <strong style={{ fontWeight: '600' }}>avoid the AED 10,000 fine</strong> <br /> - but filing must be done  within 7 months. <br />
+          <a href="https://api.whatsapp.com/send/?phone=971507178156&text=Hello+Finanshels%2C+I+visited+your+site+and+am+interested+in+corporate+tax+filing+services.+How+can+we+proceed%3F&type=phone_number&app_absent=0" style={{ color: BRAND_COLORS.primary, fontSize: '24px', textDecoration: 'none', fontWeight: '600',}}>Click Here to Contact Us</a>.
         </p>
       </div>
     </div>
