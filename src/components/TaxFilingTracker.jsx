@@ -647,7 +647,7 @@ const TaxFilingTracker = () => {
             }}>
               <div style={{
                 ...styles.resultNumber,
-                marginBottom: windowWidth < 768 ? '0.5rem' : '0'
+                marginBottom: windowWidth < 768 ? '0.5rem' : '0.5rem'
               }}>
                 1
               </div>
