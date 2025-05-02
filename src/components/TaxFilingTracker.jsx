@@ -696,7 +696,7 @@ const TaxFilingTracker = () => {
               </div>
               <div style={{ width: windowWidth < 768 ? '100%' : 'auto' }}>
                 <div style={styles.resultLabel}>
-                  Your First Waiver Due Date:
+                  Your Waiver Application Deadline:
                 </div>
                 <div style={styles.resultValue}>
                   {waiverDueDate}  
