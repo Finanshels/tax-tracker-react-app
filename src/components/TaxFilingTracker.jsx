@@ -51,6 +51,9 @@ const TaxFilingTracker = () => {
       return;
     }
 
+
+    
+
     if (!incorporationDate) {
       if (showResults) setShowResults(false);
       return;
