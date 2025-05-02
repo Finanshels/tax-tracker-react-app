@@ -28,6 +28,7 @@ const TaxFilingTracker = () => {
   const [financialYear, setFinancialYear] = useState(FINANCIAL_YEAR_OPTIONS[0]);
   const [firstFilingPeriod, setFirstFilingPeriod] = useState('');
   const [filingDueDate, setFilingDueDate] = useState('');
+  const [waiverDueDate, setWaiverDueDate] = useState('');
   const [showResults, setShowResults] = useState(false);
   const [customYear, setCustomYear] = useState(new Date().getFullYear());
   const [customMonth, setCustomMonth] = useState(new Date().getMonth());
@@ -151,10 +152,23 @@ const TaxFilingTracker = () => {
     const dueMonth = (endMonth + 9) % 12;
     const dueYear = endYear + Math.floor((endMonth + 9) / 12);
     const filingDueDateValue = new Date(dueYear, dueMonth, 1);
+    const waiverDueDateValue = new Date(dueYear, dueMonth-2, 1);
     
     const formatDate = (date) => `${getMonthName(date.getMonth())} ${date.getFullYear()}`;
+    const waiverFormatDate = (date) => `${getMonthName(date.getMonth())} ${date.getFullYear()}`;
+
+  
+
     const formattedFirstFilingPeriod = `${formatDate(firstFilingStartDate)} to ${formatDate(firstFilingEndDate)}`;
     const formattedFilingDueDate = formatDate(filingDueDateValue);
+
+    const formatDateWaiver = formatDate(waiverDueDateValue);
+    // const formattedFirstFilingPeriodWaiver = `${formatDateWaiver(firstFilingStartDate)} to ${formatDateWaiver(firstFilingEndDate)}`;
+    const formattedFilingDueDateWaiver = formatDate(filingDueDateValue);
+
+    setWaiverDueDate(formatDateWaiver)
+
+
 
     // Update UI immediately
     setFirstFilingPeriod(formattedFirstFilingPeriod);
@@ -625,7 +639,7 @@ const TaxFilingTracker = () => {
             Tax Filing Timeline
           </h3>
 
-          <div style={{ marginBottom: windowWidth < 768 ? '1rem' : '1.5rem' }}>
+          <div style={{ marginBottom: windowWidth < 768 ? '1.5rem' : '1.5rem' }}>
             <div style={{
               ...styles.resultItem,
               alignItems: windowWidth < 768 ? 'flex-start' : 'center',
@@ -651,7 +665,7 @@ const TaxFilingTracker = () => {
               ...styles.resultItem,
               alignItems: windowWidth < 768 ? 'flex-start' : 'center',
               flexDirection: windowWidth < 768 ? 'column' : 'row',
-              marginBottom: 0
+              marginBottom: '1.0rem'
             }}>
               <div style={{
                 ...styles.resultNumber,
@@ -668,6 +682,27 @@ const TaxFilingTracker = () => {
                 </div>
               </div>
             </div>
+            <div style={{
+              ...styles.resultItem,
+              alignItems: windowWidth < 768 ? 'flex-start' : 'center',
+              flexDirection: windowWidth < 768 ? 'column' : 'row',
+              marginBottom: 0
+            }}>
+              <div style={{
+                ...styles.resultNumber,
+                marginBottom: windowWidth < 768 ? '0.5rem' : '0'
+              }}>
+                3
+              </div>
+              <div style={{ width: windowWidth < 768 ? '100%' : 'auto' }}>
+                <div style={styles.resultLabel}>
+                  Your First Waiver Due Date:
+                </div>
+                <div style={styles.resultValue}>
+                  {waiverDueDate}  
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       )}
@@ -677,7 +712,7 @@ const TaxFilingTracker = () => {
         <p style={styles.footerText}>
           <strong style={{ fontWeight: '600', fontSize: '20px' }}>New FTA Announcement </strong> <br />
           {windowWidth < 768 ? <br /> : ' '}Businesses that missed their tax registration can now <strong style={{ fontWeight: '600' }}>avoid the AED 10,000 fine</strong> <br /> - but filing must be done  within 7 months. <br />
-          <a href="https://api.whatsapp.com/send/?phone=971507178156&text=Hello+Finanshels%2C+I+visited+your+site+and+am+interested+in+corporate+tax+filing+services.+How+can+we+proceed%3F&type=phone_number&app_absent=0" style={{ color: BRAND_COLORS.primary, fontSize: '24px', textDecoration: 'none', fontWeight: '600',}}>Click Here to Contact Us</a>.
+          <a href="https://api.whatsapp.com/send/?phone=971507178156&text=Hello+Finanshels%2C+I+visited+your+site+and+am+interested+in+corporate+tax+filing+services.+How+can+we+proceed%3F&type=phone_number&app_absent=0" style={{ color: BRAND_COLORS.primary, fontSize: '24px', textDecoration: 'none', fontWeight: '600',}}>Click here to Contact Us Now</a>.
         </p>
       </div>
     </div>
