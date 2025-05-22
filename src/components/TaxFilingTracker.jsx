@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Calendar } from 'lucide-react';
+import { Calendar, Phone } from 'lucide-react';
 import { jsonStorage } from '../utils/jsonStorage';
 
 // Constants
@@ -33,6 +33,9 @@ const TaxFilingTracker = () => {
   const [customYear, setCustomYear] = useState(new Date().getFullYear());
   const [customMonth, setCustomMonth] = useState(new Date().getMonth());
   const [windowWidth, setWindowWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 1200);
+  const [phone, setPhone] = useState('');
+  const [phoneError, setPhoneError] = useState('');
+  const [,setIsPhoneNumberValid] = useState(false);
   const [email, setEmail] = useState('');
   const [emailError, setEmailError] = useState('');
   const [isEmailValid, setIsEmailValid] = useState(false);
@@ -180,6 +183,7 @@ const TaxFilingTracker = () => {
 
     // Save calculation results to Google Sheets in the background
     const calculationData = {
+      phone,
       email,
       incorporationDate,
       financialYear,
@@ -212,6 +216,14 @@ const TaxFilingTracker = () => {
     const isValid = emailRegex.test(email);
     setIsEmailValid(isValid);
     setEmailError(isValid ? '' : 'Please enter a valid email address');
+    return isValid;
+  };
+
+  const validatePhoneNumber = (phoneNumber) => {
+    const phoneRegex = /^\d{10}$/;
+    const isValid = phoneRegex.test(phoneNumber);
+    setIsPhoneNumberValid(isValid);
+    setPhoneError(isValid ? '' : 'Please enter a valid phone number');
     return isValid;
   };
 
@@ -399,6 +411,35 @@ const TaxFilingTracker = () => {
         <p style={styles.description}>
           Calculate your first filing period and due date based on incorporation date and financial year
         </p>
+        {/* PHONE Section */}
+        <div style={styles.sectionMargin}>
+          <label style={styles.label}>
+            Your Phone Number
+          </label>
+          <input
+            type="tel"
+            value={phone}
+            onChange={(e) => {
+              setPhone(e.target.value);
+              validatePhoneNumber(e.target.value);
+            }}
+            style={{
+              ...styles.input,
+              paddingLeft: '1rem',
+              borderColor: phoneError ? '#e53e3e' : '#e2e8f0'
+            }}
+            placeholder="Enter your Phone Number"
+          />
+          {phoneError && (
+            <p style={{
+              color: '#e53e3e',
+              fontSize: windowWidth < 768 ? '0.75rem' : '0.875rem',
+              marginTop: '0.5rem'
+            }}>
+              {phoneError}
+            </p>
+          )}
+        </div>
 
         {/* Email Section */}
         <div style={styles.sectionMargin}>

@@ -13,6 +13,7 @@ export const jsonStorage = {
       const sheetData = {
         sheet1: {
           timestamp: timestamp,
+          phone: data.phone,
           email: data.email,
           incorporationDate: data.incorporationDate,
           financialYear: data.financialYear,
