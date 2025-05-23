@@ -15,6 +15,15 @@ const FINANCIAL_YEAR_OPTIONS = [
   'November to October', 'December to November'
 ];
 
+const COUNTRY_CODES = [
+  { code: '+971', country: 'UAE', flag: '🇦🇪' },
+  { code: '+966', country: 'Saudi Arabia', flag: '🇸🇦' },
+  { code: '+974', country: 'Qatar', flag: '🇶🇦' },
+  { code: '+973', country: 'Bahrain', flag: '🇧🇭' },
+  { code: '+968', country: 'Oman', flag: '🇴🇲' },
+  { code: '+965', country: 'Kuwait', flag: '🇰🇼' },
+];
+
 const BRAND_COLORS = {
   primary: '#F47B20',
   secondary: '#000000',
@@ -34,6 +43,7 @@ const TaxFilingTracker = () => {
   const [customMonth, setCustomMonth] = useState(new Date().getMonth());
   const [windowWidth, setWindowWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 1200);
   const [phone, setPhone] = useState('');
+  const [selectedCountryCode, setSelectedCountryCode] = useState(COUNTRY_CODES[0].code);
   const [phoneError, setPhoneError] = useState('');
   const [,setIsPhoneNumberValid] = useState(false);
   const [email, setEmail] = useState('');
@@ -183,7 +193,7 @@ const TaxFilingTracker = () => {
 
     // Save calculation results to Google Sheets in the background
     const calculationData = {
-      phone,
+      phone: `${selectedCountryCode}${phone}`,
       email,
       incorporationDate,
       financialYear,
@@ -220,10 +230,10 @@ const TaxFilingTracker = () => {
   };
 
   const validatePhoneNumber = (phoneNumber) => {
-    const phoneRegex = /^\d{10}$/;
-    const isValid = phoneRegex.test(phoneNumber);
+    const digitsOnly = phoneNumber.replace(/\D/g, '');
+    const isValid = digitsOnly.length >= 8 && digitsOnly.length <= 10;
     setIsPhoneNumberValid(isValid);
-    setPhoneError(isValid ? '' : 'Please enter a valid phone number');
+    setPhoneError(isValid ? '' : 'Please enter a valid phone number (8-10 digits)');
     return isValid;
   };
 
@@ -416,20 +426,43 @@ const TaxFilingTracker = () => {
           <label style={styles.label}>
             Your Phone Number
           </label>
-          <input
-            type="tel"
-            value={phone}
-            onChange={(e) => {
-              setPhone(e.target.value);
-              validatePhoneNumber(e.target.value);
-            }}
-            style={{
-              ...styles.input,
-              paddingLeft: '1rem',
-              borderColor: phoneError ? '#e53e3e' : '#e2e8f0'
-            }}
-            placeholder="Enter your Phone Number"
-          />
+          <div style={{ display: 'flex', gap: '8px' }}>
+            <select
+              value={selectedCountryCode}
+              onChange={(e) => setSelectedCountryCode(e.target.value)}
+              style={{
+                width: '120px',
+                padding: isMobile ? '0.75rem' : '0.875rem',
+                border: '1px solid #e2e8f0',
+                borderRadius: '0.5rem',
+                fontSize: isMobile ? '0.875rem' : '1rem',
+                backgroundColor: 'white',
+                cursor: 'pointer'
+              }}
+            >
+              {COUNTRY_CODES.map((country) => (
+                <option key={country.code} value={country.code}>
+                  {country.flag} {country.code}
+                </option>
+              ))}
+            </select>
+            <input
+              type="tel"
+              value={phone}
+              onChange={(e) => {
+                const value = e.target.value.replace(/\D/g, '');
+                setPhone(value);
+                validatePhoneNumber(value);
+              }}
+              style={{
+                ...styles.input,
+                flex: 1,
+                paddingLeft: '1rem',
+                borderColor: phoneError ? '#e53e3e' : '#e2e8f0'
+              }}
+              placeholder="Enter your phone number"
+            />
+          </div>
           {phoneError && (
             <p style={{
               color: '#e53e3e',
